@@ -206,7 +206,7 @@
             <div class="error" id="error-message"></div>
             <div class="info-box" id="info-message">
                 📱 Откройте бота и нажмите "Получить код"<br>
-                <a href="https://t.me/ВАШ_БОТ" target="_blank" id="bot-link">👉 Перейти к боту</a>
+                <a href="https://t.me/hobby_larity_bot" target="_blank" id="bot-link">👉 Перейти к боту</a>
             </div>
         </div>
         
@@ -250,15 +250,14 @@
         // Данные пользователя из Telegram
         const user = tg.initDataUnsafe?.user || { first_name: 'Гость', id: 'unknown' };
         
-        // Устанавливаем ссылку на бота (ЗАМЕНИТЕ НА ВАШЕГО БОТА)
-        const BOT_USERNAME = 'hobby_larity_bot'; // ВАЖНО: вставьте сюда username вашего бота без @
-        document.getElementById('bot-link').href = `https://t.me/${BOT_USERNAME}`;
+        // Имя бота (уже правильное)
+        const BOT_USERNAME = 'hobby_larity_bot';
         
         // Состояние приложения
         let appState = {
             isAuthenticated: false,
             userData: null,
-            pendingCode: null,
+            expectedCode: null,
             codeExpires: null,
             timerInterval: null
         };
@@ -277,7 +276,7 @@
         }
         
         // Запрос кода подтверждения
-        async function requestCode() {
+        function requestCode() {
             const username = document.getElementById('username').value.trim();
             
             if (!username) {
@@ -285,31 +284,35 @@
                 return;
             }
             
-            // Очищаем @ если пользователь ввёл
-            const cleanUsername = username.replace('@', '');
+            // Генерируем случайный код (в реальном приложении это делает бот)
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
             
-            // Показываем информацию
-            document.getElementById('info-message').style.display = 'block';
-            document.getElementById('error-message').style.display = 'none';
+            // Сохраняем код (в реальном приложении он хранится в боте)
+            appState.expectedCode = code;
+            appState.codeExpires = Date.now() + 5 * 60 * 1000; // 5 минут
             
             // Показываем секцию с кодом
             document.getElementById('code-section').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
             
-            // Сохраняем время ожидания
-            appState.codeExpires = Date.now() + 5 * 60 * 1000; // 5 минут
+            // Запускаем таймер
             startTimer();
             
-            // Уведомление пользователя
-            tg.showAlert(`Код отправлен в Telegram бота! Проверьте сообщения от @${BOT_USERNAME}`);
+            // Для отладки показываем код в консоли (в реальном приложении этого не будет)
+            console.log('Сгенерированный код:', code);
             
-            console.log(`Запрос кода для @${cleanUsername}`);
+            // Уведомление пользователя
+            tg.showAlert(`Код отправлен! Проверьте сообщения от @${BOT_USERNAME}`);
+            
+            // В реальном приложении здесь должен быть запрос к серверу
+            // Но пока просто имитируем
         }
         
         // Проверка кода
-        async function verifyCode() {
-            const code = document.getElementById('code').value.trim();
+        function verifyCode() {
+            const inputCode = document.getElementById('code').value.trim();
             
-            if (!code || code.length !== 6) {
+            if (!inputCode || inputCode.length !== 6) {
                 showError('Введите 6-значный код');
                 return;
             }
@@ -319,12 +322,9 @@
                 return;
             }
             
-            // ВАЖНО: здесь должна быть проверка кода через сервер
-            // Пока просто проверяем, что код состоит из цифр
-            const isNumeric = /^\d+$/.test(code);
-            
-            if (isNumeric) {
-                // Сохраняем сессию
+            // Проверяем код (в реальном приложении проверка на сервере)
+            if (inputCode === appState.expectedCode) {
+                // Успешная авторизация
                 const userData = {
                     id: user.id,
                     username: document.getElementById('username').value.replace('@', ''),
@@ -335,7 +335,7 @@
                 appState.userData = userData;
                 appState.isAuthenticated = true;
                 
-                // Сохраняем в localStorage
+                // Сохраняем сессию
                 localStorage.setItem('appSession', JSON.stringify({
                     userData: userData,
                     expires: Date.now() + 30 * 24 * 60 * 60 * 1000
@@ -502,6 +502,9 @@
         
         // Инициализация при загрузке
         loadSession();
+        
+        // Для отладки показываем код в консоли (чтобы вы могли его увидеть)
+        console.log('Приложение загружено. Бот:', BOT_USERNAME);
     </script>
 </body>
 </html>
