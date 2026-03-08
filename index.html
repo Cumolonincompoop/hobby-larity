@@ -67,13 +67,6 @@
             border-color: var(--tg-theme-button-color, #40a7e3);
         }
         
-        .code-input {
-            letter-spacing: 4px;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-        }
-        
         .button {
             width: 100%;
             padding: 16px;
@@ -111,13 +104,6 @@
             color: var(--tg-theme-button-color, #40a7e3);
             text-decoration: none;
             font-weight: 500;
-        }
-        
-        .timer {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--tg-theme-button-color, #40a7e3);
-            margin: 10px 0;
         }
         
         .error {
@@ -182,32 +168,26 @@
         <!-- Экран регистрации/входа -->
         <div id="auth-screen" class="auth-container">
             <h1 class="auth-title">👋 Добро пожаловать!</h1>
-            <p class="auth-subtitle">Войдите через Telegram для доступа к приложению</p>
+            <p class="auth-subtitle">Введите данные, которые прислал бот</p>
+            
+            <div class="info-box">
+                📱 Напишите боту <b>@singularity_hobbyshop_bot</b><br>
+                и отправьте команду <b>/start</b>
+            </div>
             
             <div class="input-group">
-                <label>Ваш Telegram username</label>
-                <input type="text" id="username" placeholder="@username" value="">
+                <label>Ваш Telegram ID (из сообщения бота)</label>
+                <input type="text" id="user-id" placeholder="Например: 5405524605">
             </div>
             
-            <button class="button" onclick="requestCode()">🔐 Получить код подтверждения</button>
-            
-            <div id="code-section" style="display: none;">
-                <div class="input-group">
-                    <label>Код из Telegram</label>
-                    <input type="text" id="code" class="code-input" placeholder="000000" maxlength="6" inputmode="numeric">
-                </div>
-                
-                <div class="timer" id="timer"></div>
-                
-                <button class="button" onclick="verifyCode()">✅ Подтвердить</button>
-                <button class="button secondary" onclick="resetAuth()">↺ Запросить новый код</button>
+            <div class="input-group">
+                <label>Ваш Telegram username (из сообщения бота)</label>
+                <input type="text" id="username" placeholder="@username">
             </div>
+            
+            <button class="button" onclick="login()">🔐 Войти</button>
             
             <div class="error" id="error-message"></div>
-            <div class="info-box" id="info-message">
-                📱 Откройте бота и нажмите "Получить код"<br>
-                <a href="https://t.me/singularity_hobbyshop_bot" target="_blank" id="bot-link">👉 Перейти к боту</a>
-            </div>
         </div>
         
         <!-- Основное приложение (показывается после входа) -->
@@ -247,19 +227,10 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // Данные пользователя из Telegram
-        const user = tg.initDataUnsafe?.user || { first_name: 'Гость', id: 'unknown' };
-        
-        // Имя вашего бота (правильное)
-        const BOT_USERNAME = 'singularity_hobbyshop_bot';
-        
         // Состояние приложения
         let appState = {
             isAuthenticated: false,
-            userData: null,
-            expectedCode: null,
-            codeExpires: null,
-            timerInterval: null
+            userData: null
         };
         
         // Загружаем сохранённую сессию
@@ -267,119 +238,59 @@
             const saved = localStorage.getItem('appSession');
             if (saved) {
                 const session = JSON.parse(saved);
-                if (session.expires > Date.now()) {
-                    appState.isAuthenticated = true;
-                    appState.userData = session.userData;
-                    showApp();
-                }
+                appState.isAuthenticated = true;
+                appState.userData = session.userData;
+                showApp();
             }
         }
         
-        // Запрос кода подтверждения
-        function requestCode() {
+        // Функция входа
+        function login() {
+            const userId = document.getElementById('user-id').value.trim();
             const username = document.getElementById('username').value.trim();
             
-            if (!username) {
-                showError('Введите ваш Telegram username');
+            if (!userId || !username) {
+                showError('Введите ID и username');
                 return;
             }
             
-            // Генерируем случайный код
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            // Очищаем @ если пользователь ввёл
+            const cleanUsername = username.replace('@', '');
             
-            // Сохраняем код
-            appState.expectedCode = code;
-            appState.codeExpires = Date.now() + 5 * 60 * 1000; // 5 минут
-            
-            // Показываем секцию с кодом
-            document.getElementById('code-section').style.display = 'block';
-            document.getElementById('error-message').style.display = 'none';
-            
-            // Запускаем таймер
-            startTimer();
-            
-            // Показываем код в консоли (для отладки)
-            console.log('🔐 Ваш код для входа:', code);
-            
-            // Уведомление пользователя
-            tg.showAlert(`Перейдите в бота @${BOT_USERNAME} и нажмите "Получить код"`);
-        }
-        
-        // Проверка кода
-        function verifyCode() {
-            const inputCode = document.getElementById('code').value.trim();
-            
-            if (!inputCode || inputCode.length !== 6) {
-                showError('Введите 6-значный код');
+            // Проверяем, что ID состоит только из цифр
+            if (!/^\d+$/.test(userId)) {
+                showError('ID должен содержать только цифры');
                 return;
             }
             
-            if (Date.now() > appState.codeExpires) {
-                showError('Код истёк. Запросите новый.');
-                return;
-            }
+            // Успешный вход
+            const userData = {
+                id: userId,
+                username: cleanUsername,
+                first_name: cleanUsername,
+                authDate: Date.now()
+            };
             
-            // Проверяем код
-            if (inputCode === appState.expectedCode) {
-                // Успешная авторизация
-                const userData = {
-                    id: user.id,
-                    username: document.getElementById('username').value.replace('@', ''),
-                    first_name: user.first_name,
-                    authDate: Date.now()
-                };
-                
-                appState.userData = userData;
-                appState.isAuthenticated = true;
-                
-                // Сохраняем сессию
-                localStorage.setItem('appSession', JSON.stringify({
-                    userData: userData,
-                    expires: Date.now() + 30 * 24 * 60 * 60 * 1000
-                }));
-                
-                // Показываем основное приложение
-                showApp();
-                
-                // Останавливаем таймер
-                if (appState.timerInterval) {
-                    clearInterval(appState.timerInterval);
-                }
-                
-                tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                showError('Неверный код');
-                tg.HapticFeedback.notificationOccurred('error');
-            }
-        }
-        
-        // Таймер обратного отсчёта
-        function startTimer() {
-            if (appState.timerInterval) {
-                clearInterval(appState.timerInterval);
-            }
+            appState.userData = userData;
+            appState.isAuthenticated = true;
             
-            appState.timerInterval = setInterval(() => {
-                const remaining = appState.codeExpires - Date.now();
-                
-                if (remaining <= 0) {
-                    document.getElementById('timer').textContent = 'Код истёк';
-                    clearInterval(appState.timerInterval);
-                    return;
-                }
-                
-                const minutes = Math.floor(remaining / 60000);
-                const seconds = Math.floor((remaining % 60000) / 1000);
-                document.getElementById('timer').textContent = 
-                    `Код действителен: ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
+            // Сохраняем сессию
+            localStorage.setItem('appSession', JSON.stringify({
+                userData: userData,
+                expires: Date.now() + 30 * 24 * 60 * 60 * 1000
+            }));
+            
+            // Показываем основное приложение
+            showApp();
+            
+            tg.HapticFeedback.notificationOccurred('success');
         }
         
         // Показать основное приложение
         function showApp() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            document.getElementById('userName').textContent = appState.userData.first_name || 'Пользователь';
+            document.getElementById('userName').textContent = appState.userData.username || 'Пользователь';
             
             // Загружаем данные пользователя
             loadUserData();
@@ -476,17 +387,6 @@
                 appState.isAuthenticated = false;
                 document.getElementById('auth-screen').style.display = 'block';
                 document.getElementById('app-content').style.display = 'none';
-                resetAuth();
-            }
-        }
-        
-        // Сброс авторизации
-        function resetAuth() {
-            document.getElementById('code-section').style.display = 'none';
-            document.getElementById('code').value = '';
-            document.getElementById('error-message').style.display = 'none';
-            if (appState.timerInterval) {
-                clearInterval(appState.timerInterval);
             }
         }
         
