@@ -3,29 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Моё приложение</title>
+    <title>Мой кошелёк</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background: #f0f0f0;
-        }
-        h1 {
-            color: #333;
-        }
-        .message {
-            background: white;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
             padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+        }
+        
+        .balance {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--tg-theme-button-color, #40a7e3);
+        }
+        
+        .card {
+            background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .card h3 {
+            margin-bottom: 15px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+        
+        .button {
+            width: 100%;
+            padding: 15px;
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        
+        .button:active {
+            opacity: 0.8;
+        }
+        
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .plus {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
-    <div class="message">
-        <h1>Привет, мир!</h1>
-        <p>Моё первое приложение работает!</p>
+    <div class="container">
+        <!-- Шапка с балансом -->
+        <div class="header">
+            <span id="userName">Загрузка...</span>
+            <span class="balance" id="balance">0 ₽</span>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="stats">
+            <div class="stat-box">
+                <div>Заказов</div>
+                <div class="stat-number" id="ordersCount">0</div>
+            </div>
+            <div class="stat-box">
+                <div>Кешбек</div>
+                <div class="stat-number" id="totalCashback">0 ₽</div>
+            </div>
+        </div>
+        
+        <!-- Кнопки действий -->
+        <div class="card">
+            <h3>Действия</h3>
+            <button class="button" onclick="addCashback()">💰 Получить кешбек (50 ₽)</button>
+            <button class="button" onclick="makeOrder()">🛒 Сделать заказ (100 ₽)</button>
+            <button class="button" onclick="resetData()">🔄 Сбросить всё</button>
+        </div>
+        
+        <!-- История -->
+        <div class="card">
+            <h3>История операций</h3>
+            <div id="history"></div>
+        </div>
     </div>
+
+    <script>
+        // Инициализация Telegram
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // Данные пользователя из Telegram
+        const user = tg.initDataUnsafe?.user || { first_name: 'Гость' };
+        document.getElementById('userName').textContent = user.first_name;
+        
+        // Загружаем данные из localStorage (хранятся в браузере)
+        let userData = {
+            balance: 0,
+            orders: [],
+            cashback: []
+        };
+        
+        function loadData() {
+            const saved = localStorage.getItem('userData');
+            if (saved) {
+                userData = JSON.parse(saved);
+            }
+            updateUI();
+        }
+        
+        function saveData() {
+            localStorage.setItem('userData', JSON.stringify(userData));
+        }
+        
+        function updateUI() {
+            // Обновляем баланс
+            document.getElementById('balance').textContent = userData.balance + ' ₽';
+            
+            // Обновляем статистику
+            document.getElementById('ordersCount').textContent = userData.orders.length;
+            
+            const totalCashback = userData.cashback.reduce((sum, item) => sum + item.amount, 0);
+            document.getElementById('totalCashback').textContent = totalCashback + ' ₽';
+            
+            // Обновляем историю
+            const history = [...userData.orders, ...userData.cashback]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10);
+            
+            const historyHtml = history.map(item => {
+                const isCashback = item.type === 'cashback';
+                return `
+                    <div class="history-item">
+                        <span>${item.description}</span>
+                        <span class="${isCashback ? 'plus' : ''}">${isCashback ? '+' : '-'} ${item.amount} ₽</span>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('history').innerHTML = historyHtml || '<p>Пока нет операций</p>';
+            
+            // Отправляем данные в Telegram (для Main Button)
+            tg.MainButton.setText(`Баланс: ${userData.balance} ₽`);
+        }
+        
+        // Функции действий
+        function addCashback() {
+            const amount = 50;
+            userData.balance += amount;
+            userData.cashback.push({
+                type: 'cashback',
+                amount: amount,
+                description: 'Кешбек начислен',
+                date: new Date().toISOString()
+            });
+            saveData();
+            updateUI();
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+        
+        function makeOrder() {
+            if (userData.balance < 100) {
+                tg.showAlert('Недостаточно средств!');
+                return;
+            }
+            
+            userData.balance -= 100;
+            userData.orders.push({
+                type: 'order',
+                amount: 100,
+                description: 'Заказ #' + (userData.orders.length + 1),
+                date: new Date().toISOString()
+            });
+            saveData();
+            updateUI();
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+        
+        function resetData() {
+            if (confirm('Сбросить все данные?')) {
+                userData = {
+                    balance: 0,
+                    orders: [],
+                    cashback: []
+                };
+                saveData();
+                updateUI();
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+        }
+        
+        // Загружаем данные при старте
+        loadData();
+        
+        // Настраиваем главную кнопку Telegram
+        tg.MainButton.setText(`Баланс: ${userData.balance} ₽`);
+        tg.MainButton.show();
+    </script>
 </body>
 </html>
