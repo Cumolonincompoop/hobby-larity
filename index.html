@@ -140,7 +140,7 @@
             font-weight: 500;
         }
         
-        .input-group input {
+        .input-group input, .input-group select {
             width: 100%;
             padding: 15px;
             border: 2px solid rgba(0,0,0,0.1);
@@ -150,7 +150,7 @@
             color: var(--tg-theme-text-color, #000);
         }
         
-        .input-group input:focus {
+        .input-group input:focus, .input-group select:focus {
             outline: none;
             border-color: var(--tg-theme-button-color, #40a7e3);
         }
@@ -179,6 +179,16 @@
             color: var(--tg-theme-button-color, #40a7e3);
         }
         
+        .button.admin {
+            background: #ff4444;
+            color: white;
+            border: none;
+        }
+        
+        .button.admin:hover {
+            background: #ff6666;
+        }
+        
         .info-box {
             background: rgba(0,0,0,0.05);
             padding: 15px;
@@ -201,12 +211,19 @@
             display: none;
         }
         
+        .success {
+            color: #4CAF50;
+            font-size: 14px;
+            margin: 10px 0;
+            display: none;
+        }
+        
         /* Стили для основного приложения */
         .app-content {
             display: none;
         }
         
-        /* Стили для профиля (модальное окно) */
+        /* Стили для модальных окон */
         .modal {
             display: none;
             position: fixed;
@@ -280,6 +297,16 @@
             color: var(--tg-theme-hint-color, #999);
         }
         
+        .admin-badge {
+            display: inline-block;
+            background: #ff4444;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -299,6 +326,33 @@
             font-weight: bold;
             color: var(--tg-theme-button-color, #40a7e3);
             margin-top: 5px;
+        }
+        
+        /* Админ-панель */
+        .admin-section {
+            margin-top: 20px;
+            border-top: 2px solid #ff4444;
+            padding-top: 20px;
+        }
+        
+        .admin-title {
+            color: #ff4444;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .balance-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .balance-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            font-size: 14px;
         }
         
         /* Корзина */
@@ -492,6 +546,28 @@
                 <h3>История операций</h3>
                 <div id="profile-history"></div>
                 
+                <!-- Админ-панель (будет показана только для админа) -->
+                <div id="admin-panel" style="display: none;">
+                    <div class="admin-section">
+                        <h3 class="admin-title">🔧 Админ-панель</h3>
+                        
+                        <div class="input-group">
+                            <label>Username пользователя</label>
+                            <input type="text" id="admin-username" placeholder="@username" class="balance-input">
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Сумма (положительная или отрицательная)</label>
+                            <input type="number" id="admin-amount" placeholder="Например: 1000 или -500" class="balance-input">
+                        </div>
+                        
+                        <button class="button admin" onclick="adminGiveBalance()">💰 Начислить/Снять</button>
+                        
+                        <div id="admin-success" class="success"></div>
+                        <div id="admin-error" class="error"></div>
+                    </div>
+                </div>
+                
                 <button class="button secondary" onclick="logout()" style="margin-top: 20px;">🚪 Выйти</button>
             </div>
         </div>
@@ -519,6 +595,9 @@
         // Инициализация Telegram
         const tg = window.Telegram.WebApp;
         tg.expand();
+        
+        // ID АДМИНА (ваш ID)
+        const ADMIN_ID = '5405524605';
         
         // Состояние приложения
         let appState = {
@@ -618,7 +697,7 @@
                 window.userData = JSON.parse(saved);
             } else {
                 window.userData = {
-                    balance: 0,
+                    balance: 1000, // Начальный баланс для теста
                     orders: [],
                     cashback: []
                 };
@@ -687,6 +766,101 @@
             }).join('');
             
             document.getElementById('profile-history').innerHTML = historyHtml || '<p style="color: #999;">Пока нет операций</p>';
+            
+            // Показываем админ-панель только для админа
+            if (appState.userData.id === ADMIN_ID) {
+                document.getElementById('admin-panel').style.display = 'block';
+            } else {
+                document.getElementById('admin-panel').style.display = 'none';
+            }
+        }
+        
+        // Админ-функция: начисление валюты
+        function adminGiveBalance() {
+            const targetUsername = document.getElementById('admin-username').value.trim().replace('@', '');
+            const amount = parseInt(document.getElementById('admin-amount').value);
+            
+            const adminSuccess = document.getElementById('admin-success');
+            const adminError = document.getElementById('admin-error');
+            
+            adminSuccess.style.display = 'none';
+            adminError.style.display = 'none';
+            
+            if (!targetUsername || !amount || isNaN(amount)) {
+                adminError.textContent = 'Введите username и сумму';
+                adminError.style.display = 'block';
+                return;
+            }
+            
+            // Ищем пользователя по всем сохранённым данным
+            let foundUser = null;
+            let foundUserId = null;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('userData_')) {
+                    const userId = key.replace('userData_', '');
+                    const userData = JSON.parse(localStorage.getItem(key));
+                    
+                    // Проверяем username в сохранённых данных
+                    const savedUsername = userData.username || '';
+                    if (savedUsername.toLowerCase() === targetUsername.toLowerCase()) {
+                        foundUser = userData;
+                        foundUserId = userId;
+                        break;
+                    }
+                }
+            }
+            
+            // Проверяем также текущего пользователя
+            if (!foundUser && appState.userData.username.toLowerCase() === targetUsername.toLowerCase()) {
+                foundUser = window.userData;
+                foundUserId = appState.userData.id;
+            }
+            
+            if (!foundUser) {
+                adminError.textContent = `Пользователь @${targetUsername} не найден`;
+                adminError.style.display = 'block';
+                return;
+            }
+            
+            // Изменяем баланс
+            const oldBalance = foundUser.balance;
+            foundUser.balance += amount;
+            
+            // Добавляем в историю
+            const transaction = {
+                type: amount > 0 ? 'cashback' : 'order',
+                amount: amount,
+                description: amount > 0 ? 'Начисление админом' : 'Списание админом',
+                date: new Date().toISOString()
+            };
+            
+            if (amount > 0) {
+                foundUser.cashback.push(transaction);
+            } else {
+                foundUser.orders.push(transaction);
+            }
+            
+            // Сохраняем
+            localStorage.setItem(`userData_${foundUserId}`, JSON.stringify(foundUser));
+            
+            // Если это текущий пользователь, обновляем данные
+            if (foundUserId === appState.userData.id) {
+                window.userData = foundUser;
+            }
+            
+            // Очищаем поля
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-amount').value = '';
+            
+            // Показываем успех
+            adminSuccess.textContent = `✅ Баланс @${targetUsername} изменён на ${amount > 0 ? '+' : ''}${amount}. Новый баланс: ${foundUser.balance}`;
+            adminSuccess.style.display = 'block';
+            
+            // Обновляем интерфейс
+            updateUI();
+            tg.HapticFeedback.notificationOccurred('success');
         }
         
         // Переключение между разделами
