@@ -17,11 +17,99 @@
             background: var(--tg-theme-bg-color, #ffffff);
             color: var(--tg-theme-text-color, #000000);
             padding: 20px;
+            padding-bottom: 80px;
+            min-height: 100vh;
         }
         
         .container {
-            max-width: 400px;
+            max-width: 600px;
             margin: 0 auto;
+        }
+        
+        /* Фиксированная шапка с разделами */
+        .sections-header {
+            position: sticky;
+            top: 0;
+            background: var(--tg-theme-bg-color, #ffffff);
+            padding: 15px 0;
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--tg-theme-hint-color, #999);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        
+        .section-btn.active {
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+        
+        /* Иконки профиля и корзины */
+        .profile-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .cart-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 55px;
+            height: 55px;
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         /* Стили для регистрации */
@@ -113,53 +201,217 @@
             display: none;
         }
         
-        .success {
-            color: #4CAF50;
-            font-size: 16px;
-            font-weight: 500;
-            margin: 10px 0;
-        }
-        
-        /* Стили для основного приложения (изначально скрыты) */
+        /* Стили для основного приложения */
         .app-content {
             display: none;
         }
         
-        .header {
+        /* Стили для профиля (модальное окно) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: flex-end;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: var(--tg-theme-bg-color, #ffffff);
+            width: 100%;
+            border-radius: 20px 20px 0 0;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding: 15px;
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            border-radius: 12px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
         }
         
-        .balance {
+        .close-modal {
             font-size: 24px;
+            cursor: pointer;
+            color: var(--tg-theme-hint-color, #999);
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        /* Профиль */
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            background: var(--tg-theme-button-color, #40a7e3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+        }
+        
+        .profile-details h3 {
+            margin-bottom: 5px;
+        }
+        
+        .profile-details p {
+            color: var(--tg-theme-hint-color, #999);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--tg-theme-button-color, #40a7e3);
+            margin-top: 5px;
+        }
+        
+        /* Корзина */
+        .cart-items {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .cart-item-info h4 {
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-price {
+            color: var(--tg-theme-hint-color, #999);
+        }
+        
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quantity-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: transparent;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .checkout-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Товары */
+        .products-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .product-card {
+            background: rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .product-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .product-price {
+            font-size: 20px;
             font-weight: bold;
             color: var(--tg-theme-button-color, #40a7e3);
         }
         
-        .card {
-            background: var(--tg-theme-secondary-bg-color, #f8f8f8);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
+        .add-to-cart-btn {
+            padding: 10px;
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.3s;
         }
         
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
+        .add-to-cart-btn:active {
+            opacity: 0.8;
         }
         
-        .stat-box {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 </head>
@@ -190,34 +442,75 @@
             <div class="error" id="error-message"></div>
         </div>
         
-        <!-- Основное приложение (показывается после входа) -->
+        <!-- Основное приложение -->
         <div id="app-content" class="app-content">
-            <div class="header">
-                <span id="userName">Загрузка...</span>
-                <span class="balance" id="balance">0 ₽</span>
+            <!-- Фиксированные иконки -->
+            <div class="profile-icon" onclick="openProfile()">П</div>
+            <div class="cart-icon" onclick="openCart()">
+                К
+                <span class="cart-count" id="cart-count">0</span>
             </div>
             
-            <div class="stats">
-                <div class="stat-box">
-                    <div>Заказов</div>
-                    <div class="stat-number" id="ordersCount">0</div>
+            <!-- Фиксированная шапка с разделами -->
+            <div class="sections-header">
+                <button class="section-btn active" onclick="switchSection('hobby')">Хобби</button>
+                <button class="section-btn" onclick="switchSection('food')">Вкусленд</button>
+            </div>
+            
+            <!-- Контейнер для товаров -->
+            <div id="products-container"></div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно профиля -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Профиль</h2>
+                <span class="close-modal" onclick="closeProfile()">×</span>
+            </div>
+            <div class="modal-body">
+                <div class="profile-info">
+                    <div class="profile-avatar">П</div>
+                    <div class="profile-details">
+                        <h3 id="profile-name">Загрузка...</h3>
+                        <p id="profile-username">@username</p>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div>Кешбек</div>
-                    <div class="stat-number" id="totalCashback">0 ₽</div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div>Баланс</div>
+                        <div class="stat-value" id="profile-balance">0 ₽</div>
+                    </div>
+                    <div class="stat-item">
+                        <div>Заказов</div>
+                        <div class="stat-value" id="profile-orders">0</div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="card">
-                <h3>Действия</h3>
-                <button class="button" onclick="addCashback()">💰 Получить кешбек (50 ₽)</button>
-                <button class="button" onclick="makeOrder()">🛒 Сделать заказ (100 ₽)</button>
-                <button class="button secondary" onclick="logout()">🚪 Выйти</button>
-            </div>
-            
-            <div class="card">
+                
                 <h3>История операций</h3>
-                <div id="history"></div>
+                <div id="profile-history"></div>
+                
+                <button class="button secondary" onclick="logout()" style="margin-top: 20px;">🚪 Выйти</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно корзины -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Корзина</h2>
+                <span class="close-modal" onclick="closeCart()">×</span>
+            </div>
+            <div class="modal-body">
+                <div id="cart-items-container" class="cart-items"></div>
+                <div class="cart-total">
+                    <span>Итого:</span>
+                    <span id="cart-total">0 ₽</span>
+                </div>
+                <button class="checkout-btn" onclick="checkout()" id="checkout-btn">Оформить заказ</button>
             </div>
         </div>
     </div>
@@ -230,7 +523,29 @@
         // Состояние приложения
         let appState = {
             isAuthenticated: false,
-            userData: null
+            userData: null,
+            currentSection: 'hobby',
+            cart: []
+        };
+        
+        // Товары для разных разделов
+        const products = {
+            hobby: [
+                { id: 1, name: 'Модель самолёта', price: 1500, section: 'hobby' },
+                { id: 2, name: 'Набор для вышивания', price: 800, section: 'hobby' },
+                { id: 3, name: 'Конструктор Lego', price: 2500, section: 'hobby' },
+                { id: 4, name: 'Радиоуправляемая машина', price: 3500, section: 'hobby' },
+                { id: 5, name: 'Настольная игра', price: 1200, section: 'hobby' },
+                { id: 6, name: 'Пазл 1000 деталей', price: 600, section: 'hobby' }
+            ],
+            food: [
+                { id: 7, name: 'Пицца Маргарита', price: 500, section: 'food' },
+                { id: 8, name: 'Бургер Классический', price: 350, section: 'food' },
+                { id: 9, name: 'Картофель фри', price: 150, section: 'food' },
+                { id: 10, name: 'Кола 0.5л', price: 100, section: 'food' },
+                { id: 11, name: 'Морс клюквенный', price: 120, section: 'food' },
+                { id: 12, name: 'Сэндвич с курицей', price: 280, section: 'food' }
+            ]
         };
         
         // Загружаем сохранённую сессию
@@ -238,9 +553,11 @@
             const saved = localStorage.getItem('appSession');
             if (saved) {
                 const session = JSON.parse(saved);
-                appState.isAuthenticated = true;
-                appState.userData = session.userData;
-                showApp();
+                if (session.expires > Date.now()) {
+                    appState.isAuthenticated = true;
+                    appState.userData = session.userData;
+                    showApp();
+                }
             }
         }
         
@@ -254,16 +571,13 @@
                 return;
             }
             
-            // Очищаем @ если пользователь ввёл
             const cleanUsername = username.replace('@', '');
             
-            // Проверяем, что ID состоит только из цифр
             if (!/^\d+$/.test(userId)) {
                 showError('ID должен содержать только цифры');
                 return;
             }
             
-            // Успешный вход
             const userData = {
                 id: userId,
                 username: cleanUsername,
@@ -274,15 +588,12 @@
             appState.userData = userData;
             appState.isAuthenticated = true;
             
-            // Сохраняем сессию
             localStorage.setItem('appSession', JSON.stringify({
                 userData: userData,
                 expires: Date.now() + 30 * 24 * 60 * 60 * 1000
             }));
             
-            // Показываем основное приложение
             showApp();
-            
             tg.HapticFeedback.notificationOccurred('success');
         }
         
@@ -290,10 +601,12 @@
         function showApp() {
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('app-content').style.display = 'block';
-            document.getElementById('userName').textContent = appState.userData.username || 'Пользователь';
             
             // Загружаем данные пользователя
             loadUserData();
+            
+            // Отображаем товары текущего раздела
+            renderProducts(appState.currentSection);
         }
         
         // Загрузить данные пользователя
@@ -311,6 +624,13 @@
                 };
             }
             
+            // Загружаем корзину
+            const cartKey = `cart_${appState.userData.id}`;
+            const savedCart = localStorage.getItem(cartKey);
+            if (savedCart) {
+                appState.cart = JSON.parse(savedCart);
+            }
+            
             updateUI();
         }
         
@@ -320,13 +640,35 @@
             localStorage.setItem(key, JSON.stringify(window.userData));
         }
         
+        // Сохранить корзину
+        function saveCart() {
+            const cartKey = `cart_${appState.userData.id}`;
+            localStorage.setItem(cartKey, JSON.stringify(appState.cart));
+        }
+        
         // Обновить интерфейс
         function updateUI() {
-            document.getElementById('balance').textContent = window.userData.balance + ' ₽';
-            document.getElementById('ordersCount').textContent = window.userData.orders.length;
+            // Обновляем счётчик корзины
+            const cartCount = appState.cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').textContent = cartCount;
             
-            const totalCashback = window.userData.cashback.reduce((sum, item) => sum + item.amount, 0);
-            document.getElementById('totalCashback').textContent = totalCashback + ' ₽';
+            // Обновляем профиль, если он открыт
+            if (document.getElementById('profile-modal').classList.contains('active')) {
+                updateProfileInfo();
+            }
+            
+            // Обновляем корзину, если она открыта
+            if (document.getElementById('cart-modal').classList.contains('active')) {
+                renderCart();
+            }
+        }
+        
+        // Обновить информацию в профиле
+        function updateProfileInfo() {
+            document.getElementById('profile-name').textContent = appState.userData.username || 'Пользователь';
+            document.getElementById('profile-username').textContent = `@${appState.userData.username}`;
+            document.getElementById('profile-balance').textContent = window.userData.balance + ' ₽';
+            document.getElementById('profile-orders').textContent = window.userData.orders.length;
             
             const history = [...window.userData.orders, ...window.userData.cashback]
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -335,49 +677,197 @@
             const historyHtml = history.map(item => {
                 const isCashback = item.type === 'cashback';
                 return `
-                    <div style="padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between;">
+                    <div class="history-item">
                         <span>${item.description}</span>
-                        <span style="color: ${isCashback ? '#4CAF50' : '#ff4444'}; font-weight: bold;">
+                        <span style="color: ${isCashback ? '#4CAF50' : '#ff4444'};">
                             ${isCashback ? '+' : '-'} ${item.amount} ₽
                         </span>
                     </div>
                 `;
             }).join('');
             
-            document.getElementById('history').innerHTML = historyHtml || '<p style="color: #999;">Пока нет операций</p>';
+            document.getElementById('profile-history').innerHTML = historyHtml || '<p style="color: #999;">Пока нет операций</p>';
         }
         
-        // Функции действий
-        function addCashback() {
-            const amount = 50;
-            window.userData.balance += amount;
-            window.userData.cashback.push({
-                type: 'cashback',
-                amount: amount,
-                description: 'Кешбек начислен',
-                date: new Date().toISOString()
+        // Переключение между разделами
+        function switchSection(section) {
+            appState.currentSection = section;
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.section-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
-            saveUserData();
-            updateUI();
-            tg.HapticFeedback.notificationOccurred('success');
+            event.target.classList.add('active');
+            
+            // Отображаем товары
+            renderProducts(section);
         }
         
-        function makeOrder() {
-            if (window.userData.balance < 100) {
+        // Отображение товаров
+        function renderProducts(section) {
+            const container = document.getElementById('products-container');
+            const sectionProducts = products[section];
+            
+            container.innerHTML = `
+                <div class="products-grid">
+                    ${sectionProducts.map(product => `
+                        <div class="product-card">
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-price">${product.price} ₽</div>
+                            <button class="add-to-cart-btn" onclick="addToCart(${product.id})">
+                                В корзину
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Добавление в корзину
+        function addToCart(productId) {
+            // Определяем, из какого раздела товар
+            let product = null;
+            for (const section in products) {
+                product = products[section].find(p => p.id === productId);
+                if (product) break;
+            }
+            
+            if (!product) return;
+            
+            const existingItem = appState.cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                appState.cart.push({
+                    ...product,
+                    quantity: 1
+                });
+            }
+            
+            saveCart();
+            updateUI();
+            tg.HapticFeedback.impactOccurred('light');
+        }
+        
+        // Обновление количества в корзине
+        function updateCartItem(productId, action) {
+            const item = appState.cart.find(i => i.id === productId);
+            if (!item) return;
+            
+            if (action === 'increase') {
+                item.quantity++;
+            } else if (action === 'decrease') {
+                item.quantity--;
+                if (item.quantity <= 0) {
+                    appState.cart = appState.cart.filter(i => i.id !== productId);
+                }
+            }
+            
+            saveCart();
+            renderCart();
+            updateUI();
+            tg.HapticFeedback.impactOccurred('light');
+        }
+        
+        // Удаление из корзины
+        function removeFromCart(productId) {
+            appState.cart = appState.cart.filter(i => i.id !== productId);
+            saveCart();
+            renderCart();
+            updateUI();
+            tg.HapticFeedback.impactOccurred('light');
+        }
+        
+        // Отображение корзины
+        function renderCart() {
+            const container = document.getElementById('cart-items-container');
+            const total = appState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            container.innerHTML = appState.cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h4>${item.name}</h4>
+                        <span class="cart-item-price">${item.price} ₽</span>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button class="quantity-btn" onclick="updateCartItem(${item.id}, 'decrease')">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="quantity-btn" onclick="updateCartItem(${item.id}, 'increase')">+</button>
+                        <button class="quantity-btn" onclick="removeFromCart(${item.id})">×</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('cart-total').textContent = total + ' ₽';
+            document.getElementById('checkout-btn').disabled = appState.cart.length === 0;
+        }
+        
+        // Оформление заказа
+        function checkout() {
+            if (appState.cart.length === 0) return;
+            
+            const total = appState.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            if (window.userData.balance < total) {
                 tg.showAlert('Недостаточно средств!');
                 return;
             }
             
-            window.userData.balance -= 100;
+            // Списание средств
+            window.userData.balance -= total;
+            
+            // Добавление в историю заказов
             window.userData.orders.push({
                 type: 'order',
-                amount: 100,
+                amount: total,
                 description: 'Заказ #' + (window.userData.orders.length + 1),
+                items: [...appState.cart],
                 date: new Date().toISOString()
             });
+            
+            // Начисление кешбека (5%)
+            const cashback = Math.floor(total * 0.05);
+            window.userData.balance += cashback;
+            window.userData.cashback.push({
+                type: 'cashback',
+                amount: cashback,
+                description: 'Кешбек 5%',
+                date: new Date().toISOString()
+            });
+            
+            // Очистка корзины
+            appState.cart = [];
+            
             saveUserData();
+            saveCart();
             updateUI();
+            
+            closeCart();
+            tg.showAlert(`Заказ оформлен! Начислено ${cashback} ₽ кешбека`);
             tg.HapticFeedback.notificationOccurred('success');
+        }
+        
+        // Открыть профиль
+        function openProfile() {
+            updateProfileInfo();
+            document.getElementById('profile-modal').classList.add('active');
+        }
+        
+        // Закрыть профиль
+        function closeProfile() {
+            document.getElementById('profile-modal').classList.remove('active');
+        }
+        
+        // Открыть корзину
+        function openCart() {
+            renderCart();
+            document.getElementById('cart-modal').classList.add('active');
+        }
+        
+        // Закрыть корзину
+        function closeCart() {
+            document.getElementById('cart-modal').classList.remove('active');
         }
         
         // Выход
@@ -387,6 +877,7 @@
                 appState.isAuthenticated = false;
                 document.getElementById('auth-screen').style.display = 'block';
                 document.getElementById('app-content').style.display = 'none';
+                closeProfile();
             }
         }
         
@@ -395,6 +886,19 @@
             const errorEl = document.getElementById('error-message');
             errorEl.textContent = message;
             errorEl.style.display = 'block';
+        }
+        
+        // Закрытие модалок по клику вне области
+        window.onclick = function(event) {
+            const profileModal = document.getElementById('profile-modal');
+            const cartModal = document.getElementById('cart-modal');
+            
+            if (event.target === profileModal) {
+                closeProfile();
+            }
+            if (event.target === cartModal) {
+                closeCart();
+            }
         }
         
         // Инициализация при загрузке
