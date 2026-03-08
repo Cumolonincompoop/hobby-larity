@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой кошелёк</title>
+    <title>Моё приложение</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -22,6 +22,121 @@
         .container {
             max-width: 400px;
             margin: 0 auto;
+        }
+        
+        /* Стили для регистрации */
+        .auth-container {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .auth-title {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: var(--tg-theme-button-color, #40a7e3);
+        }
+        
+        .auth-subtitle {
+            color: var(--tg-theme-hint-color, #999);
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+            color: var(--tg-theme-text-color, #000);
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color, #40a7e3);
+        }
+        
+        .code-input {
+            letter-spacing: 4px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .button {
+            width: 100%;
+            padding: 16px;
+            background: var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: opacity 0.3s;
+        }
+        
+        .button:active {
+            opacity: 0.8;
+        }
+        
+        .button.secondary {
+            background: transparent;
+            border: 2px solid var(--tg-theme-button-color, #40a7e3);
+            color: var(--tg-theme-button-color, #40a7e3);
+        }
+        
+        .info-box {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666);
+        }
+        
+        .info-box a {
+            color: var(--tg-theme-button-color, #40a7e3);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--tg-theme-button-color, #40a7e3);
+            margin: 10px 0;
+        }
+        
+        .error {
+            color: #ff4444;
+            font-size: 14px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .success {
+            color: #4CAF50;
+            font-size: 16px;
+            font-weight: 500;
+            margin: 10px 0;
+        }
+        
+        /* Стили для основного приложения (изначально скрыты) */
+        .app-content {
+            display: none;
         }
         
         .header {
@@ -47,40 +162,6 @@
             margin-bottom: 15px;
         }
         
-        .card h3 {
-            margin-bottom: 15px;
-            color: var(--tg-theme-hint-color, #999);
-        }
-        
-        .button {
-            width: 100%;
-            padding: 15px;
-            background: var(--tg-theme-button-color, #40a7e3);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        
-        .button:active {
-            opacity: 0.8;
-        }
-        
-        .history-item {
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .plus {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-        
         .stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -94,46 +175,70 @@
             border-radius: 10px;
             text-align: center;
         }
-        
-        .stat-number {
-            font-size: 22px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Шапка с балансом -->
-        <div class="header">
-            <span id="userName">Загрузка...</span>
-            <span class="balance" id="balance">0 ₽</span>
-        </div>
-        
-        <!-- Статистика -->
-        <div class="stats">
-            <div class="stat-box">
-                <div>Заказов</div>
-                <div class="stat-number" id="ordersCount">0</div>
+        <!-- Экран регистрации/входа -->
+        <div id="auth-screen" class="auth-container">
+            <h1 class="auth-title">👋 Добро пожаловать!</h1>
+            <p class="auth-subtitle">Войдите через Telegram для доступа к приложению</p>
+            
+            <div class="input-group">
+                <label>Ваш Telegram username</label>
+                <input type="text" id="username" placeholder="@username" value="">
             </div>
-            <div class="stat-box">
-                <div>Кешбек</div>
-                <div class="stat-number" id="totalCashback">0 ₽</div>
+            
+            <button class="button" onclick="requestCode()">🔐 Получить код подтверждения</button>
+            
+            <div id="code-section" style="display: none;">
+                <div class="input-group">
+                    <label>Код из Telegram</label>
+                    <input type="text" id="code" class="code-input" placeholder="000000" maxlength="6" inputmode="numeric">
+                </div>
+                
+                <div class="timer" id="timer"></div>
+                
+                <button class="button" onclick="verifyCode()">✅ Подтвердить</button>
+                <button class="button secondary" onclick="resetAuth()">↺ Запросить новый код</button>
+            </div>
+            
+            <div class="error" id="error-message"></div>
+            <div class="info-box" id="info-message">
+                📱 Откройте бота и нажмите "Получить код"<br>
+                <a href="https://t.me/ВАШ_БОТ" target="_blank" id="bot-link">👉 Перейти к боту</a>
             </div>
         </div>
         
-        <!-- Кнопки действий -->
-        <div class="card">
-            <h3>Действия</h3>
-            <button class="button" onclick="addCashback()">💰 Получить кешбек (50 ₽)</button>
-            <button class="button" onclick="makeOrder()">🛒 Сделать заказ (100 ₽)</button>
-            <button class="button" onclick="resetData()">🔄 Сбросить всё</button>
-        </div>
-        
-        <!-- История -->
-        <div class="card">
-            <h3>История операций</h3>
-            <div id="history"></div>
+        <!-- Основное приложение (показывается после входа) -->
+        <div id="app-content" class="app-content">
+            <div class="header">
+                <span id="userName">Загрузка...</span>
+                <span class="balance" id="balance">0 ₽</span>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div>Заказов</div>
+                    <div class="stat-number" id="ordersCount">0</div>
+                </div>
+                <div class="stat-box">
+                    <div>Кешбек</div>
+                    <div class="stat-number" id="totalCashback">0 ₽</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Действия</h3>
+                <button class="button" onclick="addCashback()">💰 Получить кешбек (50 ₽)</button>
+                <button class="button" onclick="makeOrder()">🛒 Сделать заказ (100 ₽)</button>
+                <button class="button secondary" onclick="logout()">🚪 Выйти</button>
+            </div>
+            
+            <div class="card">
+                <h3>История операций</h3>
+                <div id="history"></div>
+            </div>
         </div>
     </div>
 
@@ -143,111 +248,260 @@
         tg.expand();
         
         // Данные пользователя из Telegram
-        const user = tg.initDataUnsafe?.user || { first_name: 'Гость' };
-        document.getElementById('userName').textContent = user.first_name;
+        const user = tg.initDataUnsafe?.user || { first_name: 'Гость', id: 'unknown' };
         
-        // Загружаем данные из localStorage (хранятся в браузере)
-        let userData = {
-            balance: 0,
-            orders: [],
-            cashback: []
+        // Устанавливаем ссылку на бота (ЗАМЕНИТЕ НА ВАШЕГО БОТА)
+        const BOT_USERNAME = 'hobby_larity_bot'; // ВАЖНО: вставьте сюда username вашего бота без @
+        document.getElementById('bot-link').href = `https://t.me/${BOT_USERNAME}`;
+        
+        // Состояние приложения
+        let appState = {
+            isAuthenticated: false,
+            userData: null,
+            pendingCode: null,
+            codeExpires: null,
+            timerInterval: null
         };
         
-        function loadData() {
-            const saved = localStorage.getItem('userData');
+        // Загружаем сохранённую сессию
+        function loadSession() {
+            const saved = localStorage.getItem('appSession');
             if (saved) {
-                userData = JSON.parse(saved);
+                const session = JSON.parse(saved);
+                if (session.expires > Date.now()) {
+                    appState.isAuthenticated = true;
+                    appState.userData = session.userData;
+                    showApp();
+                }
             }
+        }
+        
+        // Запрос кода подтверждения
+        async function requestCode() {
+            const username = document.getElementById('username').value.trim();
+            
+            if (!username) {
+                showError('Введите ваш Telegram username');
+                return;
+            }
+            
+            // Очищаем @ если пользователь ввёл
+            const cleanUsername = username.replace('@', '');
+            
+            // Показываем информацию
+            document.getElementById('info-message').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            
+            // Показываем секцию с кодом
+            document.getElementById('code-section').style.display = 'block';
+            
+            // Сохраняем время ожидания
+            appState.codeExpires = Date.now() + 5 * 60 * 1000; // 5 минут
+            startTimer();
+            
+            // Уведомление пользователя
+            tg.showAlert(`Код отправлен в Telegram бота! Проверьте сообщения от @${BOT_USERNAME}`);
+            
+            console.log(`Запрос кода для @${cleanUsername}`);
+        }
+        
+        // Проверка кода
+        async function verifyCode() {
+            const code = document.getElementById('code').value.trim();
+            
+            if (!code || code.length !== 6) {
+                showError('Введите 6-значный код');
+                return;
+            }
+            
+            if (Date.now() > appState.codeExpires) {
+                showError('Код истёк. Запросите новый.');
+                return;
+            }
+            
+            // ВАЖНО: здесь должна быть проверка кода через сервер
+            // Пока просто проверяем, что код состоит из цифр
+            const isNumeric = /^\d+$/.test(code);
+            
+            if (isNumeric) {
+                // Сохраняем сессию
+                const userData = {
+                    id: user.id,
+                    username: document.getElementById('username').value.replace('@', ''),
+                    first_name: user.first_name,
+                    authDate: Date.now()
+                };
+                
+                appState.userData = userData;
+                appState.isAuthenticated = true;
+                
+                // Сохраняем в localStorage
+                localStorage.setItem('appSession', JSON.stringify({
+                    userData: userData,
+                    expires: Date.now() + 30 * 24 * 60 * 60 * 1000
+                }));
+                
+                // Показываем основное приложение
+                showApp();
+                
+                // Останавливаем таймер
+                if (appState.timerInterval) {
+                    clearInterval(appState.timerInterval);
+                }
+                
+                tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                showError('Неверный код');
+                tg.HapticFeedback.notificationOccurred('error');
+            }
+        }
+        
+        // Таймер обратного отсчёта
+        function startTimer() {
+            if (appState.timerInterval) {
+                clearInterval(appState.timerInterval);
+            }
+            
+            appState.timerInterval = setInterval(() => {
+                const remaining = appState.codeExpires - Date.now();
+                
+                if (remaining <= 0) {
+                    document.getElementById('timer').textContent = 'Код истёк';
+                    clearInterval(appState.timerInterval);
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60000);
+                const seconds = Math.floor((remaining % 60000) / 1000);
+                document.getElementById('timer').textContent = 
+                    `Код действителен: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+        
+        // Показать основное приложение
+        function showApp() {
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            document.getElementById('userName').textContent = appState.userData.first_name || 'Пользователь';
+            
+            // Загружаем данные пользователя
+            loadUserData();
+        }
+        
+        // Загрузить данные пользователя
+        function loadUserData() {
+            const key = `userData_${appState.userData.id}`;
+            const saved = localStorage.getItem(key);
+            
+            if (saved) {
+                window.userData = JSON.parse(saved);
+            } else {
+                window.userData = {
+                    balance: 0,
+                    orders: [],
+                    cashback: []
+                };
+            }
+            
             updateUI();
         }
         
-        function saveData() {
-            localStorage.setItem('userData', JSON.stringify(userData));
+        // Сохранить данные пользователя
+        function saveUserData() {
+            const key = `userData_${appState.userData.id}`;
+            localStorage.setItem(key, JSON.stringify(window.userData));
         }
         
+        // Обновить интерфейс
         function updateUI() {
-            // Обновляем баланс
-            document.getElementById('balance').textContent = userData.balance + ' ₽';
+            document.getElementById('balance').textContent = window.userData.balance + ' ₽';
+            document.getElementById('ordersCount').textContent = window.userData.orders.length;
             
-            // Обновляем статистику
-            document.getElementById('ordersCount').textContent = userData.orders.length;
-            
-            const totalCashback = userData.cashback.reduce((sum, item) => sum + item.amount, 0);
+            const totalCashback = window.userData.cashback.reduce((sum, item) => sum + item.amount, 0);
             document.getElementById('totalCashback').textContent = totalCashback + ' ₽';
             
-            // Обновляем историю
-            const history = [...userData.orders, ...userData.cashback]
+            const history = [...window.userData.orders, ...window.userData.cashback]
                 .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .slice(0, 10);
             
             const historyHtml = history.map(item => {
                 const isCashback = item.type === 'cashback';
                 return `
-                    <div class="history-item">
+                    <div style="padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-between;">
                         <span>${item.description}</span>
-                        <span class="${isCashback ? 'plus' : ''}">${isCashback ? '+' : '-'} ${item.amount} ₽</span>
+                        <span style="color: ${isCashback ? '#4CAF50' : '#ff4444'}; font-weight: bold;">
+                            ${isCashback ? '+' : '-'} ${item.amount} ₽
+                        </span>
                     </div>
                 `;
             }).join('');
             
-            document.getElementById('history').innerHTML = historyHtml || '<p>Пока нет операций</p>';
-            
-            // Отправляем данные в Telegram (для Main Button)
-            tg.MainButton.setText(`Баланс: ${userData.balance} ₽`);
+            document.getElementById('history').innerHTML = historyHtml || '<p style="color: #999;">Пока нет операций</p>';
         }
         
         // Функции действий
         function addCashback() {
             const amount = 50;
-            userData.balance += amount;
-            userData.cashback.push({
+            window.userData.balance += amount;
+            window.userData.cashback.push({
                 type: 'cashback',
                 amount: amount,
                 description: 'Кешбек начислен',
                 date: new Date().toISOString()
             });
-            saveData();
+            saveUserData();
             updateUI();
             tg.HapticFeedback.notificationOccurred('success');
         }
         
         function makeOrder() {
-            if (userData.balance < 100) {
+            if (window.userData.balance < 100) {
                 tg.showAlert('Недостаточно средств!');
                 return;
             }
             
-            userData.balance -= 100;
-            userData.orders.push({
+            window.userData.balance -= 100;
+            window.userData.orders.push({
                 type: 'order',
                 amount: 100,
-                description: 'Заказ #' + (userData.orders.length + 1),
+                description: 'Заказ #' + (window.userData.orders.length + 1),
                 date: new Date().toISOString()
             });
-            saveData();
+            saveUserData();
             updateUI();
             tg.HapticFeedback.notificationOccurred('success');
         }
         
-        function resetData() {
-            if (confirm('Сбросить все данные?')) {
-                userData = {
-                    balance: 0,
-                    orders: [],
-                    cashback: []
-                };
-                saveData();
-                updateUI();
-                tg.HapticFeedback.impactOccurred('heavy');
+        // Выход
+        function logout() {
+            if (confirm('Выйти из аккаунта?')) {
+                localStorage.removeItem('appSession');
+                appState.isAuthenticated = false;
+                document.getElementById('auth-screen').style.display = 'block';
+                document.getElementById('app-content').style.display = 'none';
+                resetAuth();
             }
         }
         
-        // Загружаем данные при старте
-        loadData();
+        // Сброс авторизации
+        function resetAuth() {
+            document.getElementById('code-section').style.display = 'none';
+            document.getElementById('code').value = '';
+            document.getElementById('error-message').style.display = 'none';
+            if (appState.timerInterval) {
+                clearInterval(appState.timerInterval);
+            }
+        }
         
-        // Настраиваем главную кнопку Telegram
-        tg.MainButton.setText(`Баланс: ${userData.balance} ₽`);
-        tg.MainButton.show();
+        // Показать ошибку
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+        
+        // Инициализация при загрузке
+        loadSession();
     </script>
 </body>
 </html>
